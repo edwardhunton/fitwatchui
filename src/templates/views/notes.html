@@ -1,6 +1,6 @@
-<h1>{{}}Notes</h1>
+<h1>Notes</h1>
 <h2><a href="section/{{sectionid}}">Back</a></h2>
-    <li ng-repeat="note in notes"><a href="editNote/{{$index}}">{{note.title}}</a><a href="Notes/{{sectionid}}"  ng-click="deleteNote($index)"><span class="glyphicon glyphicon-trash"></span></a></li></a></li>
+    <li ng-repeat="note in notes"><a href="editNote/{{note._id}}">{{note.body}}</a><a href="Notes/{{sectionid}}"  ng-click="deleteNote(note._id)"><span class="glyphicon glyphicon-trash"></span></a></li></a></li>
 
 </ul>
 <h2><a href="addNote/{{sectionid}}">Add Note</a></h2>

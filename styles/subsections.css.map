@@ -1,0 +1,7 @@
+{
+"version": 3,
+"mappings": "AAAA,MAAO;EACL,KAAK,EAAE,GAAG",
+"sources": ["modules/subsections.scss"],
+"names": [],
+"file": "subsections.css"
+}

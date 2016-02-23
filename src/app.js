@@ -1,6 +1,11 @@
+// YOUTUBE API key AIzaSyCjaFl81Nj02On6nwBijj6L3MnukPcG8ZI
+// https://www.googleapis.com/youtube/v3/search?part=snippet&q=yoga&key=AIzaSyCjaFl81Nj02On6nwBijj6L3MnukPcG8ZI -- works //
+
 var angular = require('angular');
 require('../styles/vendor/bootstrap/dist/css/bootstrap.min.css');
 require('../styles/main.css');
+//require('./video/videoController.js');
+//require('./note/noteController.js');
 
 if(ON_TEST){
     require('angular-mocks/angular-mocks');
@@ -8,38 +13,100 @@ if(ON_TEST){
 
 //'ui.bootstrap'
 
-var fitwatch = angular.module('fitwatch', [require('angular-route')]);
+var fitwatch = angular.module('fitwatch', [require('angular-route'), require('./note/noteController') ]);
 
 fitwatch.factory("sectionid",function(){
     return {};
 });
 
-fitwatch.factory("notes",function(){
+fitwatch.factory("notes",function($http){
     var notes = [];
     return {
-        addNote: function(sectionid, note){
+        addNote: function(sectionid, note, cb){
             if(notes[sectionid] === undefined){
 
                 notes[sectionid] = [];
-                notes[sectionid].push(note);
-            } else {
-                notes[sectionid].push(note);
+
+            }
+            note.section = sectionid;
+            var data = note;
+            var config = {'method': 'POST'};
+            var successCallback = function(response){
+                notes = response.data
+                cb.call(this, notes);
+            }
+            var errorCallback = function(){}
+          //  notes[sectionid].push(note);
+          // notes.push(note);
+
+            $http.post('http://localhost:4242/api/notes', data, config).then(successCallback, errorCallback);
+
+
+        },
+        deleteNote: function(sectionid, id, cb){
+
+         //  notes[sectionid].splice(parseInt(id.id), 1)
+            var successCallback = function(response){
+                notes = response.data
+                cb.call(this, notes);
+            }
+            var errorCallback = function(e){
+                console.log("ERR"+e);
             }
 
-        },
-        deleteNote: function(sectionid, id){
 
-           notes[sectionid].splice(parseInt(id.id), 1)
 
-        },
-        getNotes: function(sectionid){
-
-            return notes[sectionid];
+            $http.get('http://localhost:4242/api/notes/delete/'+id+'/section/'+sectionid).then(successCallback, errorCallback);
 
         },
-        getNote: function(sectionid, id){
+        getNotes: function(sectionid, cb){
+            //var notes;
+            var successCallback = function(response){
+                notes = response.data
+                cb.call(this, notes);
+            }
+            var errorCallback = function(){}
 
-            return notes[sectionid][id];
+            var config = {'responseType': 'json'};
+
+           $http.get('http://localhost:4242/api/notes/'+sectionid, config).then(successCallback, errorCallback);
+
+
+
+
+        },
+        getNote: function(id, cb){
+
+            //var notes;
+            var successCallback = function(response){
+                note = response.data
+                cb.call(this, note);
+            }
+            var errorCallback = function(){}
+
+            var config = {'responseType': 'json'};
+
+            $http.get('http://localhost:4242/api/note/'+id, config).then(successCallback, errorCallback);
+
+
+
+        },
+        editNote: function(id, cb, note){
+
+            //var notes;
+            var successCallback = function(response){
+                note = response.data
+                cb.call(this, note);
+            }
+            var errorCallback = function(){}
+
+            var data = note;
+
+            var config = {'responseType': 'json'};
+
+            $http.post('http://localhost:4242/api/note/edit/'+id, data, config).then(successCallback, errorCallback);
+
+
 
         }
     };
@@ -114,14 +181,20 @@ angular.module('fitwatch').controller('SectionCtrl',function($scope, $routeParam
     ]
 });
 
-angular.module('fitwatch').controller('NotesCtrl',function($scope, $routeParams, $location, sectionid, notes){
+/*angular.module('fitwatch').controller('NotesCtrl',function($scope, $routeParams, $location, sectionid, notes){
     $scope.sectionid = sectionid;
     $scope.sectionid = $scope.sectionid.id;
     $scope.notesFac = notes;
-    $scope.notes =  $scope.notesFac.getNotes($scope.sectionid);
+   var cb = function(notes){
+        $scope.notes = notes;
+    }
+    $scope.notesFac.getNotes($scope.sectionid, cb);
     console.log("Note id: "+$routeParams.id);
     if($routeParams.noteId !== undefined){
-        $scope.note = $scope.notesFac.getNote($scope.sectionid, $routeParams.noteId);
+        var cb = function(note){
+            $scope.note = note;
+        }
+        $scope.notesFac.getNote($routeParams.noteId, cb);
     }
 
 
@@ -129,30 +202,47 @@ angular.module('fitwatch').controller('NotesCtrl',function($scope, $routeParams,
 
 
     var self = this;
-    $scope.saveNote = function(note){
+    $scope.addNote = function(x){
 
-        $scope.notesFac.addNote($scope.sectionid, {'title':note});
+        var cb = function(notes){
+            $scope.notes = notes;
+            $location.url('/Notes/'+$scope.id);
+        }
+
+        $scope.notesFac.addNote($scope.sectionid, {'body':x, 'section':$scope.sectionid }, cb);
 
 
-        $location.url('/Notes/'+$scope.id);
+
     }
 
     $scope.deleteNote = function(id){
 
-        $scope.notesFac.deleteNote($scope.sectionid, {'id':id.toString()});
+        var cb = function(notes){
+            $scope.notes = notes;
+            $location.url('/Notes/'+$scope.id);
+        }
+
+        $scope.notesFac.deleteNote($scope.sectionid, id.toString(), cb);
 
 
-        $location.url('/Notes/'+$scope.id);
+
     }
 
-    $scope.editNote = function(note, id){
+    $scope.editNote = function(id){
 
-     $location.url('/Notes/'+$scope.id);
+        console.log($scope.note.body)
+
+        var cb = function(notes){
+            $scope.notes = notes;
+            $location.url('/Notes/'+$scope.sectionid);
+        }
+
+        $scope.notesFac.editNote(id, cb, $scope.note);
 
     }
 
 
-});
+});*/
 
 angular.module('fitwatch').controller('VideosCtrl',function($scope, $routeParams, $location, sectionid){
     $scope.sectionid = sectionid;
