@@ -1,0 +1,4 @@
+
+<ul class="categories items" >
+    <li ng-repeat="category in main.categories" class="section item"><h2><a ui-sref="fitwatch.categories.submenu({category:category.name})" ng-click="setCurrentCategory(category)">{{category.name}}</a></h2></li>
+</ul>
